@@ -22,14 +22,19 @@ def _write_audit(kind: str, booking) -> None:
 
 
 def notify_created(booking) -> None:
+    # FIX: Un-nested the locks to prevent deadlocks and improve throughput.
+    # We acquire, process, and release each lock independently.
     with _email_lock:
         _send_email("created", booking)
-        with _audit_lock:
-            _write_audit("created", booking)
+        
+    with _audit_lock:
+        _write_audit("created", booking)
 
 
 def notify_cancelled(booking) -> None:
+    # FIX: Un-nested the locks to match consistent, independent execution.
+    with _email_lock:
+        _send_email("cancelled", booking)
+        
     with _audit_lock:
         _write_audit("cancelled", booking)
-        with _email_lock:
-            _send_email("cancelled", booking)
