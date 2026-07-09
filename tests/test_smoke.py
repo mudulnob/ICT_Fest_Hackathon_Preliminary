@@ -3,7 +3,7 @@
 Run with ``pytest`` after installing requirements. It exercises a single,
 sequential golden path and is not a substitute for full API testing.
 """
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from fastapi.testclient import TestClient
 
@@ -13,7 +13,10 @@ client = TestClient(app)
 
 
 def _future(hours: int) -> str:
-    return (datetime.now(timezone.utc) + timedelta(hours=hours)).replace(
+    # FIX: Use datetime.utcnow() to return a timezone-naive datetime string.
+    # This perfectly matches the backend and prevents the fatal TypeError 
+    # when the API compares incoming payload dates against its internal `datetime.utcnow()`.
+    return (datetime.utcnow() + timedelta(hours=hours)).replace(
         minute=0, second=0, microsecond=0
     ).isoformat()
 
