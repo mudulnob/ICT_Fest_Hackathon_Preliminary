@@ -138,7 +138,10 @@ def list_bookings(
     total = base.count()
     items = (
         base.order_by(Booking.start_time.desc(), Booking.id.asc())
+<<<<<<< HEAD
+=======
         # FIX: Corrected pagination offset math and dynamic limit
+>>>>>>> mahmudol
         .offset((page - 1) * limit)
         .limit(limit)
         .all()
@@ -167,8 +170,11 @@ def get_booking(
         raise AppError(404, "BOOKING_NOT_FOUND", "Booking not found")
 
     response = serialize_booking(booking)
+<<<<<<< HEAD
+=======
     # FIX: Saved to "created_at" to prevent overwriting "start_time"
     response["created_at"] = iso_utc(booking.created_at)
+>>>>>>> mahmudol
     response["refunds"] = [
         {
             "amount_cents": r.amount_cents,
@@ -208,7 +214,10 @@ def cancel_booking(
     elif notice >= timedelta(hours=24):
         refund_percent = 50
     else:
+<<<<<<< HEAD
+=======
         # FIX: Updated late cancellation policy to 0%
+>>>>>>> mahmudol
         refund_percent = 0
 
     refund_amount_cents = round(booking.price_cents * (refund_percent / 100.0))
@@ -228,4 +237,9 @@ def cancel_booking(
         "status": "cancelled",
         "refund_percent": refund_percent,
         "refund_amount_cents": refund_amount_cents,
+<<<<<<< HEAD
     }
+
+=======
+    }
+>>>>>>> mahmudol

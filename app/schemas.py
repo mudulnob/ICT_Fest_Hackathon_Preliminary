@@ -1,30 +1,29 @@
-"""Pydantic request/response models."""
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class RegisterRequest(BaseModel):
-    org_name: str
-    username: str
-    password: str
+    org_name: str = Field(..., min_length=1)
+    username: str = Field(..., min_length=1)
+    password: str = Field(..., min_length=6)
 
 
 class LoginRequest(BaseModel):
-    org_name: str
-    username: str
-    password: str
+    org_name: str = Field(..., min_length=1)
+    username: str = Field(..., min_length=1)
+    password: str = Field(..., min_length=1)
 
 
 class RefreshRequest(BaseModel):
-    refresh_token: str
+    refresh_token: str = Field(..., min_length=1)
 
 
 class RoomCreateRequest(BaseModel):
-    name: str
-    capacity: int
-    hourly_rate_cents: int
+    name: str = Field(..., min_length=1)
+    capacity: int = Field(..., gt=0)
+    hourly_rate_cents: int = Field(..., ge=0)
 
 
 class BookingCreateRequest(BaseModel):
-    room_id: int
-    start_time: str
-    end_time: str
+    room_id: int = Field(..., gt=0)
+    start_time: str = Field(..., min_length=1)
+    end_time: str = Field(..., min_length=1)
