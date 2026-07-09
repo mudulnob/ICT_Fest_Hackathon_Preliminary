@@ -1,6 +1,4 @@
-"""SQLAlchemy ORM models for the CoWork domain."""
-from datetime import datetime
-
+from datetime import datetime, timezone
 from sqlalchemy import (
     Column,
     DateTime,
@@ -30,7 +28,7 @@ class User(Base):
     username = Column(String, nullable=False, index=True)
     hashed_password = Column(String, nullable=False)
     role = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
 
 class Room(Base):
@@ -54,9 +52,9 @@ class Booking(Base):
     status = Column(String, nullable=False, default="confirmed")
     reference_code = Column(String, nullable=False, index=True)
     price_cents = Column(Integer, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
 
-    refunds = relationship("RefundLog", backref="booking")
+    refunds = relationship("RefundLog", back_populates="booking", cascade="all, delete-orphan")
 
 
 class RefundLog(Base):
@@ -66,4 +64,6 @@ class RefundLog(Base):
     booking_id = Column(Integer, ForeignKey("bookings.id"), nullable=False, index=True)
     amount_cents = Column(Integer, nullable=False)
     status = Column(String, nullable=False)
-    processed_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    processed_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
+
+    booking = relationship("Booking", back_populates="refunds")
