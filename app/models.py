@@ -35,6 +35,8 @@ class User(Base):
 
 class Room(Base):
     __tablename__ = "rooms"
+    # FIX: Added constraint to prevent duplicate room names within the same org
+    __table_args__ = (UniqueConstraint("org_id", "name", name="uq_room_org_name"),)
 
     id = Column(Integer, primary_key=True)
     org_id = Column(Integer, ForeignKey("organizations.id"), nullable=False, index=True)
@@ -50,13 +52,16 @@ class Booking(Base):
     room_id = Column(Integer, ForeignKey("rooms.id"), nullable=False, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     start_time = Column(DateTime, nullable=False, index=True)
-    end_time = Column(DateTime, nullable=False)
+    # FIX: Added missing index to drastically speed up overlap/conflict queries
+    end_time = Column(DateTime, nullable=False, index=True)
     status = Column(String, nullable=False, default="confirmed")
-    reference_code = Column(String, nullable=False, index=True)
+    # FIX: Enforced uniqueness. Reference codes must never duplicate.
+    reference_code = Column(String, unique=True, nullable=False, index=True)
     price_cents = Column(Integer, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
 
-    refunds = relationship("RefundLog", backref="booking")
+    # FIX: Added cascade rules so deleting a booking safely removes its refund logs
+    refunds = relationship("RefundLog", backref="booking", cascade="all, delete-orphan")
 
 
 class RefundLog(Base):
