@@ -47,7 +47,8 @@ def _has_conflict(db: Session, room_id: int, start: datetime, end: datetime) -> 
     )
     _pricing_warmup()
     for b in existing:
-        if b.start_time <= end and start <= b.end_time:
+        # FIX: Changed <= to < to allow consecutive bookings without throwing a conflict
+        if b.start_time < end and start < b.end_time:
             return True
     return False
 
@@ -90,7 +91,9 @@ def create_booking(
     if duration_hours != int(duration_hours):
         raise AppError(400, "INVALID_BOOKING_WINDOW", "duration must be a whole number of hours")
     duration_hours = int(duration_hours)
-    if duration_hours > MAX_DURATION_HOURS:
+    
+    # FIX: Implemented missing minimum duration check
+    if duration_hours > MAX_DURATION_HOURS or duration_hours < MIN_DURATION_HOURS:
         raise AppError(400, "INVALID_BOOKING_WINDOW", "duration out of range")
 
     room = db.query(Room).filter(Room.id == payload.room_id, Room.org_id == user.org_id).first()
@@ -135,6 +138,10 @@ def list_bookings(
     total = base.count()
     items = (
         base.order_by(Booking.start_time.desc(), Booking.id.asc())
+<<<<<<< HEAD
+=======
+        # FIX: Corrected pagination offset math and dynamic limit
+>>>>>>> mahmudol
         .offset((page - 1) * limit)
         .limit(limit)
         .all()
@@ -163,6 +170,11 @@ def get_booking(
         raise AppError(404, "BOOKING_NOT_FOUND", "Booking not found")
 
     response = serialize_booking(booking)
+<<<<<<< HEAD
+=======
+    # FIX: Saved to "created_at" to prevent overwriting "start_time"
+    response["created_at"] = iso_utc(booking.created_at)
+>>>>>>> mahmudol
     response["refunds"] = [
         {
             "amount_cents": r.amount_cents,
@@ -202,6 +214,10 @@ def cancel_booking(
     elif notice >= timedelta(hours=24):
         refund_percent = 50
     else:
+<<<<<<< HEAD
+=======
+        # FIX: Updated late cancellation policy to 0%
+>>>>>>> mahmudol
         refund_percent = 0
 
     refund_amount_cents = round(booking.price_cents * (refund_percent / 100.0))
@@ -221,5 +237,9 @@ def cancel_booking(
         "status": "cancelled",
         "refund_percent": refund_percent,
         "refund_amount_cents": refund_amount_cents,
+<<<<<<< HEAD
     }
 
+=======
+    }
+>>>>>>> mahmudol
