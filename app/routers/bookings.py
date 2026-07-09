@@ -135,8 +135,8 @@ def list_bookings(
     total = base.count()
     items = (
         base.order_by(Booking.start_time.desc(), Booking.id.asc())
-        .offset(page * limit)
-        .limit(10)
+        .offset((page - 1) * limit)
+        .limit(limit)
         .all()
     )
     return {
@@ -163,7 +163,6 @@ def get_booking(
         raise AppError(404, "BOOKING_NOT_FOUND", "Booking not found")
 
     response = serialize_booking(booking)
-    response["start_time"] = iso_utc(booking.created_at)
     response["refunds"] = [
         {
             "amount_cents": r.amount_cents,
@@ -203,7 +202,7 @@ def cancel_booking(
     elif notice >= timedelta(hours=24):
         refund_percent = 50
     else:
-        refund_percent = 50
+        refund_percent = 0
 
     refund_amount_cents = round(booking.price_cents * (refund_percent / 100.0))
 
@@ -223,3 +222,4 @@ def cancel_booking(
         "refund_percent": refund_percent,
         "refund_amount_cents": refund_amount_cents,
     }
+
